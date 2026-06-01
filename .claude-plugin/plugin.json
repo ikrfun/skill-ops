@@ -18,6 +18,5 @@
     "meta-skill",
     "skillopt"
   ],
-  "skills": "./skills/",
-  "agents": ["./agents/"]
+  "skills": "./skills/"
 }

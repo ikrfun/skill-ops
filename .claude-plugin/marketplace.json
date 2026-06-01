@@ -1,5 +1,6 @@
 {
   "name": "ikrfun-skills",
+  "description": "ikrfun's Claude Code skills marketplace — home of skill-ops.",
   "owner": {
     "name": "ikrfun"
   },
@@ -8,7 +9,7 @@
       "name": "skill-ops",
       "source": "./",
       "description": "Self-evolving skill lifecycle manager for Claude Code.",
-      "version": "0.1.0"
+      "version": "0.3.0"
     }
   ]
 }
