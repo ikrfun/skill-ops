@@ -68,9 +68,21 @@ claude --plugin-dir /path/to/skill-ops
 
 ---
 
+## First run — onboarding
+
+On first use, skill-ops runs a short **onboarding** flow (state is tracked in `~/.claude/skill-ops/state.json`, starting at `onboarded: false`):
+
+1. Explains what skill-ops can and cannot do
+2. Scans your existing skills and lets you pick which ones to manage
+3. Retrofits the chosen skills (adds telemetry sidecars)
+4. Sets `onboarded: true`
+
+After that, onboarding is **skipped automatically** — you just use the commands. Re-run anytime with `/skill-ops onboard`.
+
 ## Usage
 
 ```
+/skill-ops onboard                           First-time setup (capabilities + pick skills to manage)
 /skill-ops create <name>                     Create a new skill via 7-step TDD flow
 /skill-ops retrofit <name>                   Bring an existing skill under measurement
 /skill-ops judge <name>                      Measure quality (with-skill vs baseline)

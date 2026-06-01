@@ -11,9 +11,26 @@ description: >
 
 自己進化するClaudeスキルのメタ管理システム。SkillOpt / TPGO / Anthropic公式TDDフロー統合版。
 
+## Step 0: onboarding チェック（毎回まず確認）
+
+スキル起動時、まず onboarding 状態を確認する:
+
+```bash
+bash ~/.claude/skills/skill-ops/scripts/state.sh is-onboarded
+```
+
+- **`false`（初回・未セットアップ）**: ユーザーが `onboard` 以外のコマンドを打った場合でも、
+  まず「skill-ops は初回ですね。セットアップ（onboarding）を始めましょう」と一言案内し、
+  `workflows/onboard.md` を実行する。ユーザーが「説明不要・すぐ使いたい」と言えば、
+  onboard の Step 6 だけ実行して `onboarded=true` にし、本来のコマンドへ進む。
+- **`true`（セットアップ済み）**: onboarding をスキップし、そのまま下のコマンド処理へ進む。
+
+`/skill-ops onboard` は状態に関わらず明示的に onboarding を再実行する。
+
 ## コマンド一覧
 
 ```
+/skill-ops onboard            初回セットアップ案内（できること説明＋管理対象選択）
 /skill-ops create <name>      新規スキルを7ステップTDDで作成
 /skill-ops evolve <name>      進化サイクルを手動実行
 /skill-ops judge <name>       品質評価（with-skill vs baseline）
@@ -29,6 +46,7 @@ description: >
 
 コマンドを受け取ったら `workflows/` の対応するワークフローを読み込む:
 
+- `onboard` → `workflows/onboard.md`
 - `create` → `workflows/create.md`
 - `evolve` → `workflows/evolve.md`
 - `judge` → `workflows/judge.md`

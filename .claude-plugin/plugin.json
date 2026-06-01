@@ -1,7 +1,7 @@
 {
   "name": "skill-ops",
   "displayName": "skill-ops",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Self-evolving skill lifecycle manager for Claude Code — create, measure, evolve, and graduate Agent Skills based on usage telemetry and blind evaluation gates. Inspired by SkillOpt, TPGO, and Anthropic's evaluation-driven skill development.",
   "author": {
     "name": "ikrfun"

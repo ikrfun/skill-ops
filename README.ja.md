@@ -68,9 +68,21 @@ claude --plugin-dir /path/to/skill-ops
 
 ---
 
+## 初回起動 — onboarding
+
+初回利用時、skill-ops は短い **onboarding**（初回セットアップ）を実行します（状態は `~/.claude/skill-ops/state.json` に保存。初期値 `onboarded: false`）:
+
+1. skill-ops にできること・できないことを説明
+2. 既存スキルをスキャンし、管理対象を選択
+3. 選んだスキルを retrofit（テレメトリのサイドカーを追加）
+4. `onboarded: true` に変更
+
+以降は onboarding が**自動でスキップ**され、すぐにコマンドが使えます。再実行は `/skill-ops onboard`。
+
 ## 使い方
 
 ```
+/skill-ops onboard                           初回セットアップ（できること説明＋管理対象選択）
 /skill-ops create <name>                     7ステップTDDフローで新規スキル作成
 /skill-ops retrofit <name>                   既存スキルを計測対象に変換
 /skill-ops judge <name>                      品質計測（with-skill vs baseline）

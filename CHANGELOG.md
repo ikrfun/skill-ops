@@ -3,6 +3,16 @@
 All notable changes to skill-ops are documented here.
 This project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.3.0] - 2026-06-01
+
+### Added
+- **Onboarding flow** (`workflows/onboard.md` + `scripts/state.sh`): 初回起動時に skill-ops の
+  できること／できないことを説明し、既存スキルから管理対象を選んで retrofit する案内フロー。
+  状態は `~/.claude/skill-ops/state.json` の `onboarded` フラグで管理。`false` の間は起動時に
+  onboarding を案内し、`true`（完了後）は自動スキップして通常コマンドへ。
+- `/skill-ops onboard` コマンドと SKILL.md の Step 0 ガード。
+- `scripts/state.sh`: `is-onboarded` / `set-onboarded` / `reset` / `add-managed` / `list-managed` / `show`（python3 で JSON 操作・Mac/Linux 両対応）。
+
 ## [0.2.0] - 2026-06-01
 
 3観点の adversarial 設計レビューで初期の bin/env 方式の破綻を発見し、最小堅牢版に再設計。
