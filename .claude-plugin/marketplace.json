@@ -1,0 +1,14 @@
+{
+  "name": "ikrfun-skills",
+  "owner": {
+    "name": "ikrfun"
+  },
+  "plugins": [
+    {
+      "name": "skill-ops",
+      "source": "./",
+      "description": "Self-evolving skill lifecycle manager for Claude Code.",
+      "version": "0.1.0"
+    }
+  ]
+}

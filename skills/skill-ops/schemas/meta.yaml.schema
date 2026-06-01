@@ -1,0 +1,39 @@
+# meta.yaml スキーマ定義（各スキルに配置）
+# 場所: ~/.claude/skills/{skill-name}/meta.yaml
+
+name: string                      # スキル名（SKILL.mdのnameと一致）
+version: string                   # semver (e.g., "1.0.0")
+status: string                    # draft | active | evolving | graduated | retired
+
+parent_skill: string | null       # 親スキル名
+children_skills: list[string]     # 子スキル名リスト
+
+# 使用統計
+invocation_count: integer         # 総呼び出し回数
+success_count: integer            # 成功回数
+failure_count: integer            # 失敗回数
+last_invoked: string | null       # ISO 8601
+last_evaluated: string | null     # ISO 8601
+last_evolved: string | null       # ISO 8601
+
+# 進化設定
+evolution_threshold: integer       # デフォルト: 20
+graduation_threshold: integer      # デフォルト: 100
+graduation_score_gap_pct: integer  # デフォルト: 10（これ未満で卒業候補）
+evolution_consecutive_failures: integer  # 連続失敗数（3で一時停止）
+evolution_cooldown_multiplier: integer   # 1=通常 / 2=2倍待機 / 4=4倍待機
+
+# 品質スコア
+eval_test_cases: integer          # 登録済みテストケース数
+current_quality_score: float | null   # 最新evalスコア (0-100)
+baseline_quality_score: float | null  # スキルなし時のスコア
+
+# 卒業情報（status=graduatedの場合のみ）
+graduated_at: string | null       # ISO 8601 date
+graduation_model: string | null   # 卒業時のモデル (e.g., "claude-sonnet-4-6")
+graduation_evidence: object | null
+  # with_skill_score: float
+  # baseline_score: float
+  # gap_pct: float
+
+created_at: string                # ISO 8601 date

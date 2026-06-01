@@ -1,0 +1,31 @@
+<!-- このファイルは管理対象スキルの SKILL.md 末尾に埋め込む定型文のテンプレート。
+     {{SKILL_NAME}}     → 対象スキル名に置換
+     {{SKILLOPS_SCRIPTS}} → skill-ops scripts の絶対パスに置換（埋め込み時点で ${CLAUDE_PLUGIN_ROOT}/scripts を解決）
+     マーカー行（HTMLコメント）はそのまま残すこと。 -->
+
+<!-- FAST_STATE_BEGIN -->
+## 最新の改善メモ（skill-ops 自動更新）
+
+まだ改善メモはありません。skill-ops の evolve サイクルで追記されます。
+<!-- FAST_STATE_END -->
+
+---
+
+## 📊 計測（skill-ops 管理対象）
+
+このスキルは skill-ops のライフサイクル管理下にあります。**タスク完了時に必ず**以下を実行して呼び出しを記録してください:
+
+```bash
+{{SKILLOPS_SCRIPTS}}/log_invocation.sh {{SKILL_NAME}} --outcome <success|failure|partial> [--rating <1|-1>] [--tool-calls <概算数>]
+```
+
+- `--outcome`: タスクが完遂できたか（success / 部分的 partial / 失敗 failure）
+- `--rating`: ユーザーが明示的に良し悪しを述べた場合のみ（褒め=1 / 不満=-1）
+
+ユーザーから修正指示・不満があった場合は追加で:
+
+```bash
+{{SKILLOPS_SCRIPTS}}/log_feedback.sh {{SKILL_NAME}} --type correction --content-hint "<短い要約>"
+```
+
+記録されるのは行動パターンのみ（実行時間・ツール数・成否・評価）。**入力／出力テキストは記録しません**。

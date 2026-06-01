@@ -1,0 +1,23 @@
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/
+*.swp
+
+# Backups
+*.bak
+*.bak.*
+
+# Runtime telemetry should NOT be committed to the published plugin.
+# (managed skills write these under ~/.claude/skills/<skill>/, not here,
+#  but ignore them defensively in case of local testing inside the repo)
+**/telemetry/*.jsonl
+**/evals/results/*.json
+**/evals/contrast-buffer.jsonl
+**/meta.yaml
+**/lineage.yaml
+
+# Keep templates and schemas (not ignored): templates/*.template, schemas/*

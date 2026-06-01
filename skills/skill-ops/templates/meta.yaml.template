@@ -1,0 +1,29 @@
+name: {{SKILL_NAME}}
+version: "0.1.0"
+status: draft
+
+parent_skill: null
+children_skills: []
+
+invocation_count: 0
+success_count: 0
+failure_count: 0
+last_invoked: null
+last_evaluated: null
+last_evolved: null
+
+evolution_threshold: 20
+graduation_threshold: 100
+graduation_score_gap_pct: 10
+evolution_consecutive_failures: 0
+evolution_cooldown_multiplier: 1
+
+eval_test_cases: 0
+current_quality_score: null
+baseline_quality_score: null
+
+graduated_at: null
+graduation_model: null
+graduation_evidence: null
+
+created_at: "{{DATE}}"
