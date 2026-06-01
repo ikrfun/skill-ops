@@ -60,13 +60,15 @@ touch ~/.claude/skills/{name}/telemetry/feedback.jsonl
 touch ~/.claude/skills/{name}/evals/contrast-buffer.jsonl
 ```
 
-## Step 6: 計測セクションを SKILL.md 末尾に埋め込む
+## Step 6: 計測セクションを SKILL.md 末尾に追記（本体は変更しない）
 
-`templates/telemetry-section.md.template` を読み、以下を置換して対象スキルの SKILL.md **末尾に追記**（本体は変更しない）:
+最も確実なのは `migrate.sh`（マーカー付き・冪等・FAST_STATE 保持）:
 
-- `{{SKILL_NAME}}` → 対象スキル名
-- `{{SKILLOPS_SCRIPTS}}` → **`${CLAUDE_PLUGIN_ROOT}/scripts` を実行時点で絶対パスに解決した値**
-  （例: `/Users/you/.claude/plugins/marketplaces/.../skill-ops/scripts`。対象スキル起動時には `${CLAUDE_PLUGIN_ROOT}` が別物を指すため、変数のままでは埋め込まない）
+```bash
+bash ~/.claude/skills/skill-ops/scripts/migrate.sh {name}
+```
+
+手動の場合は `templates/telemetry-section.md.template` を読み、`{{SKILL_NAME}}` を対象スキル名、`{{SKILLOPS_SCRIPTS}}` を `~/.claude/skills/skill-ops/scripts`（別配置なら環境変数 `SKILL_OPS_SCRIPTS_PATH`）に置換して末尾に追記する。`<!-- SKILLOPS_TELEMETRY_BEGIN/END -->` マーカーを残すこと。
 
 埋め込み後、本体の見出し数が変わっていないこと（追記のみ）を確認する。
 

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# log_feedback.sh — ユーザーフィードバックをテレメトリに記録する（skill-ops）
+# log_feedback.sh — ユーザーフィードバックをテレメトリに記録する（skill-ops v0.2）
 #
 # Usage:
 #   log_feedback.sh <skill-name> --type <explicit|correction|implicit> [options]
@@ -11,35 +11,30 @@
 #   --signal <text>          暗黙シグナル（retry_triggered 等）
 #   --session-id <id>        セッション識別子
 #
-# 副作用:
-#   - ~/.claude/skills/<skill>/telemetry/feedback.jsonl に1行追記
+# 設計（v0.2）:
+#   - 評価モード（judge/evolve 中）は feedback.jsonl ではなく eval-feedback.jsonl に分離。
+#   - sed 不使用（json_escape は lib.sh のパラメータ展開版）。Mac/Linux 両対応。
 
-set -euo pipefail
+set -uo pipefail
 
-SKILLS_DIR="${HOME}/.claude/skills"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=lib.sh
+source "${SCRIPT_DIR}/lib.sh"
 
-if [[ $# -lt 1 ]]; then
+if [ $# -lt 1 ]; then
   echo "ERROR: skill-name required" >&2
   exit 1
 fi
 
 SKILL="$1"; shift
-TELEM_DIR="${SKILLS_DIR}/${SKILL}/telemetry"
-LOG="${TELEM_DIR}/feedback.jsonl"
 
-if [[ ! -d "${SKILLS_DIR}/${SKILL}" ]]; then
-  echo "ERROR: skill not found: ${SKILL}" >&2
+if [ ! -d "$(skill_dir "$SKILL")" ]; then
+  echo "ERROR: skill not found: $SKILL" >&2
   exit 1
 fi
 
-TYPE=""
-RATING="null"
-COMMENT=""
-CONTENT_HINT=""
-SIGNAL=""
-SESSION_ID=""
-
-while [[ $# -gt 0 ]]; do
+TYPE=""; RATING="null"; COMMENT=""; CONTENT_HINT=""; SIGNAL=""; SESSION_ID=""
+while [ $# -gt 0 ]; do
   case "$1" in
     --type)         TYPE="$2"; shift 2 ;;
     --rating)       RATING="$2"; shift 2 ;;
@@ -51,23 +46,29 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
-if [[ -z "$TYPE" ]]; then
+if [ -z "$TYPE" ]; then
   echo "ERROR: --type required (explicit|correction|implicit)" >&2
   exit 1
 fi
 
-mkdir -p "$TELEM_DIR"
-TS="$(date '+%Y-%m-%dT%H:%M:%S%z')"
+ensure_telemetry "$SKILL"
+TS="$(now_iso)"
 
-# コメント内のダブルクォートをエスケープ
-esc() { printf '%s' "$1" | sed 's/"/\\"/g'; }
-
-LINE="{\"ts\":\"${TS}\",\"type\":\"${TYPE}\",\"rating\":${RATING}"
-[[ -n "$COMMENT" ]]      && LINE="${LINE},\"comment\":\"$(esc "$COMMENT")\""
-[[ -n "$CONTENT_HINT" ]] && LINE="${LINE},\"content_hint\":\"$(esc "$CONTENT_HINT")\""
-[[ -n "$SIGNAL" ]]       && LINE="${LINE},\"signal\":\"${SIGNAL}\""
-[[ -n "$SESSION_ID" ]]   && LINE="${LINE},\"session_id\":\"${SESSION_ID}\""
+LINE="{\"ts\":\"${TS}\",\"type\":\"$(json_escape "$TYPE")\",\"rating\":${RATING}"
+[ -n "$COMMENT" ]      && LINE="${LINE},\"comment\":\"$(json_escape "$COMMENT")\""
+[ -n "$CONTENT_HINT" ] && LINE="${LINE},\"content_hint\":\"$(json_escape "$CONTENT_HINT")\""
+[ -n "$SIGNAL" ]       && LINE="${LINE},\"signal\":\"$(json_escape "$SIGNAL")\""
+[ -n "$SESSION_ID" ]   && LINE="${LINE},\"session_id\":\"$(json_escape "$SESSION_ID")\""
 LINE="${LINE}}"
 
-echo "$LINE" >> "$LOG"
+TDIR="$(telemetry_dir "$SKILL")"
+
+if is_eval_mode "$SKILL"; then
+  printf '%s\n' "$LINE" >> "${TDIR}/eval-feedback.jsonl"
+  echo "✓ [eval] feedback logged（評価モードのため分離）: ${SKILL}"
+  exit 0
+fi
+
+printf '%s\n' "$LINE" >> "${TDIR}/feedback.jsonl"
 echo "✓ feedback logged: ${SKILL} (type=${TYPE}, rating=${RATING})"
+exit 0

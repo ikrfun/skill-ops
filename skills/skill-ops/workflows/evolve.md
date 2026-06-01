@@ -70,6 +70,12 @@ status: evolving
 
 ## Step 6: 評価ゲート（Strict Validation）
 
+評価実行を実利用に混ぜないため、まず eval ロックを取得（Step 8 で解放）:
+
+```bash
+bash ~/.claude/skills/skill-ops/scripts/eval_lock.sh acquire {name}
+```
+
 **@skill-judge** を起動して proposal_skill_md を評価:
 
 ```
@@ -101,10 +107,14 @@ PASSした場合:
    - cooldown_multiplier: max(1, current - 1)  ← 成功で緩和
 ```
 
-## Step 8: ステータスをactiveに戻す
+## Step 8: ステータスをactiveに戻す＋評価ロック解放
 
 ```yaml
 status: active
+```
+
+```bash
+bash ~/.claude/skills/skill-ops/scripts/eval_lock.sh release {name}
 ```
 
 ## Step 9: Epoch-level Slow Update チェック

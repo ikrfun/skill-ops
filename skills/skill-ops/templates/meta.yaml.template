@@ -5,10 +5,11 @@ status: draft
 parent_skill: null
 children_skills: []
 
-invocation_count: 0
-success_count: 0
-failure_count: 0
-last_invoked: null
+# --- 使用統計は telemetry/ の JSONL から集計する（v0.2） ---
+# invocation_count / success_count / failure_count / last_invoked は
+# meta.yaml に持たず、telemetry/invocations.jsonl から skill_stats.sh が
+# 都度算出する（並行 read-modify-write の lost-update を構造的に排除）。
+
 last_evaluated: null
 last_evolved: null
 

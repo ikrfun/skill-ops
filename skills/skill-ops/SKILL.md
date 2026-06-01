@@ -21,6 +21,7 @@ description: >
 /skill-ops status [name]      スキルのライフサイクル状態を表示
 /skill-ops inherit <child> --from <parent>  継承を実行
 /skill-ops retrofit <name>    既存スキルを計測対象に変換（サイドカー生成）
+/skill-ops migrate <name>|--all  既存スキルを最新形式へ移行（冪等）
 /skill-ops list               全スキルの状態一覧
 ```
 
@@ -35,6 +36,7 @@ description: >
 - `status` / `list` → `workflows/status.md`
 - `inherit` → `workflows/inherit.md`
 - `retrofit` → `workflows/retrofit.md`
+- `migrate` → `scripts/migrate.sh`（直接実行・冪等）
 
 ## スキルデータディレクトリ構造（管理対象）
 
@@ -45,30 +47,47 @@ description: >
 ├── meta.yaml             ← ライフサイクル状態・統計
 ├── lineage.yaml          ← 継承関係・バージョン履歴
 ├── telemetry/
-│   ├── invocations.jsonl ← 呼び出しログ（append-only）
-│   └── feedback.jsonl    ← ユーザーFBログ（append-only）
+│   ├── invocations.jsonl ← 実利用ログ（append-only・集計の真実）
+│   ├── feedback.jsonl    ← ユーザーFBログ（append-only）
+│   ├── eval-runs.jsonl   ← 評価実行ログ（実利用と分離・カウント外）
+│   └── eval-feedback.jsonl ← 評価中のFB（分離）
 └── evals/
     ├── test-cases.json   ← 評価テストケース
     ├── contrast-buffer.jsonl ← 却下提案の記録
     └── results/
         └── {version}.json
+
+（注: invocation_count 等は meta.yaml に持たず invocations.jsonl から集計）
 ```
 
 ## meta.yaml スキーマ（参照用）
 
 → `schemas/meta.yaml.schema` を参照（このスキルディレクトリ内）
 
-## 計測スクリプト
+## 計測スクリプト（scripts/）
 
-skill-ops は3つのシェルスクリプトでテレメトリを記録する。プラグインとしてインストールされた場合 `${CLAUDE_PLUGIN_ROOT}/scripts/` に配置される:
+skill-ops は POSIX シェルスクリプトでテレメトリを記録する（Mac/Linux 両対応、`sed -i` 不使用、外部依存なし）。デフォルト配置は `~/.claude/skills/skill-ops/scripts/`:
 
-- `${CLAUDE_PLUGIN_ROOT}/scripts/log_invocation.sh <skill> --outcome <success|failure|partial> [--rating <1|-1>] [--tool-calls N]`
-- `${CLAUDE_PLUGIN_ROOT}/scripts/log_feedback.sh <skill> --type <explicit|correction|implicit> [--rating <1|-1>] [--content-hint <text>]`
-- `${CLAUDE_PLUGIN_ROOT}/scripts/skill_stats.sh <skill> | --all`
+- `log_invocation.sh <skill> --outcome <success|failure|partial> [--rating <1|-1>] [--tool-calls N]`
+- `log_feedback.sh <skill> --type <explicit|correction|implicit> [--content-hint <text>]`
+- `skill_stats.sh <skill> | --all`
+- `eval_lock.sh acquire|release|status <skill>` — 評価実行を実利用と分離
+- `migrate.sh [--dry-run] <skill>|--all` — 既存スキルを最新形式へ移行
+- `lib.sh` — 共通ライブラリ（各スクリプトが source）
 
-これらは管理対象スキル（`~/.claude/skills/<skill>/`）の telemetry/meta.yaml を読み書きする。スクリプト自身の場所には依存せず、引数のスキル名から書き込み先を解決する。
+これらは管理対象スキル（`~/.claude/skills/<skill>/`）の telemetry を読み書きし、スキル名から書き込み先を解決する（スクリプト自身の場所に非依存）。
 
-**重要（パス安定性）**: 管理対象スキルの SKILL.md へ計測セクションを埋め込む際は、`${CLAUDE_PLUGIN_ROOT}` を**埋め込み時点で絶対パスへ解決**してから書き込むこと。対象スキルが起動された時の `${CLAUDE_PLUGIN_ROOT}` は別プラグインを指すため。埋め込みテンプレートは `templates/telemetry-section.md.template`。
+### 「ログが単一の真実」（v0.2）
+
+呼び出し回数・成功率は meta.yaml に書き戻さず、`telemetry/invocations.jsonl` の行数から `skill_stats.sh` が都度集計する。JSONL 追記は並行アトミックなので、複数セッション／マシン同時利用でも lost-update が起きない。
+
+### 評価の分離
+
+`judge`/`evolve` が対象スキルを実行する区間は `eval_lock.sh acquire` で囲む。その間の計測は `eval-runs.jsonl` に分離記録され、実利用カウントに混ざらない。ロックは同期されないマシンローカル（`$TMPDIR`）にスキル名スコープで作られる。
+
+### 埋め込みパス
+
+管理対象スキルへ埋め込む計測コマンドのパスはデフォルト `~/.claude/skills/skill-ops/scripts/`。別配置の場合は環境変数 `SKILL_OPS_SCRIPTS_PATH` で `migrate`/`retrofit` の埋め込み先を変更できる。テンプレートは `templates/telemetry-section.md.template`、移行は `migrate.sh`（`<!-- SKILLOPS_TELEMETRY_BEGIN/END -->` マーカー間を冪等再生成）。
 
 ## 重要な設計原則
 

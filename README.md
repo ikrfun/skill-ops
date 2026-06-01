@@ -1,5 +1,7 @@
 # skill-ops
 
+*English · [日本語](./README.ja.md)*
+
 > A self-evolving skill lifecycle manager for [Claude Code](https://docs.claude.com/en/docs/claude-code/overview). Treat your Agent Skills as living artifacts: **create → measure → evolve → graduate**.
 
 skill-ops is a *meta-skill* — a skill that manages other skills. It records how each of your skills performs (usage telemetry + user feedback), runs an evaluation-gated improvement loop on the `SKILL.md`, and can even decide when a skill has become redundant (the model now does it natively) and **graduate** it.
@@ -157,10 +159,16 @@ Example from the bundled `research` skill (case: "How to choose a vector DB for 
 
 ## Known limitations
 
-- **Plugin path stability for embedded scripts.** When `retrofit`/`create` embeds the measurement section into a managed skill's `SKILL.md`, it must resolve `${CLAUDE_PLUGIN_ROOT}` to an **absolute path** at embed time, because at the managed skill's runtime `${CLAUDE_PLUGIN_ROOT}` points to a different plugin. Re-installing skill-ops from a marketplace can change that path; if you re-install, re-run `retrofit` or keep skill-ops at a stable location. (A future version may copy scripts to a stable `${CLAUDE_PLUGIN_DATA}` directory.)
-- **Evaluation runs count as invocations.** A `judge`/`evolve` run that actually executes the skill will be logged like a normal use. A `--no-log` mode for evaluation is planned.
+**Resolved in v0.2** (after a 3-lens adversarial design review):
+- ~~Plugin path instability~~ → embedded paths default to `~/.claude/skills/skill-ops/scripts/` (override via `SKILL_OPS_SCRIPTS_PATH`); `migrate` regenerates them idempotently.
+- ~~Evaluation runs counted as real invocations~~ → `judge`/`evolve` wrap execution in `eval_lock.sh`; those runs go to `eval-runs.jsonl`, not the real-usage count.
+- ~~Counter lost-update race / `sed -i` Linux breakage~~ → counters removed (JSONL is the single source of truth); `sed -i` eliminated for Mac/Linux portability.
+
+**Remaining:**
 - **Single-sample noise.** A one-case judge result is indicative, not conclusive — promote to `active` only after all test cases are evaluated.
-- **No automatic scheduler yet.** Evolution is triggered on-demand or when the invocation threshold is hit and surfaced as a recommendation; it does not run unattended.
+- **No automatic scheduler yet.** Evolution is triggered on-demand or surfaced as a recommendation when the threshold is hit; it does not run unattended.
+- **Linux not yet hardware-tested.** Scripts are written for Mac/Linux portability (no `sed -i`; `stat -f`/`-c` fallback) and verified on macOS; a run on Linux is recommended.
+- **Non-default install path.** If you install skill-ops outside `~/.claude/skills/skill-ops/` (e.g. a marketplace path), set `SKILL_OPS_SCRIPTS_PATH` so embedded telemetry commands resolve correctly.
 
 ---
 
